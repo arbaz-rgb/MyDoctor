@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 
-/// admin authentication middleware
+/// user authentication middleware
 
 const authUser = async (req, res, next) => {
   try {
@@ -15,7 +15,7 @@ const authUser = async (req, res, next) => {
 
     const token_decode = jwt.verify(token, process.env.JWT_SECRET);
     req.body = req.body || {};
-    req.body.userId = token_decode.id;
+    req.body.userId = token_decode.id;  
 
     next();
   } catch (error) {
