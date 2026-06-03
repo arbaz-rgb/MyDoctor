@@ -1,156 +1,262 @@
-# MyDoctor
+# 🩺 MyDoctor
 
-MyDoctor is a full-stack doctor appointment booking platform with three deployable services:
+<div align="center">
 
-- **Patient web app** for browsing doctors, managing profiles, booking appointments, and paying with Razorpay.
-- **Admin and doctor dashboard** for doctor onboarding, appointment management, availability, and dashboard metrics.
-- **Node.js API** for authentication, doctor/user management, appointments, image uploads, and payments.
+![Node.js](https://img.shields.io/badge/Node.js-22-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
+![Express](https://img.shields.io/badge/Express-5.1-000000?style=for-the-badge&logo=express&logoColor=white)
+![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=111111)
+![Vite](https://img.shields.io/badge/Vite-7-646CFF?style=for-the-badge&logo=vite&logoColor=white)
+![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose-47A248?style=for-the-badge&logo=mongodb&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![Razorpay](https://img.shields.io/badge/Razorpay-Payments-0C2451?style=for-the-badge)
+![Cloudinary](https://img.shields.io/badge/Cloudinary-Media-3448C5?style=for-the-badge&logo=cloudinary&logoColor=white)
 
-The project is built with React, Vite, Tailwind CSS, Express, MongoDB, Cloudinary, Razorpay, and Docker.
+**A full-stack doctor appointment booking platform with separate patient, admin, doctor, and API services.**
 
-## Table of Contents
+</div>
 
-- [Architecture](#architecture)
-- [Features](#features)
-- [Tech Stack](#tech-stack)
-- [Project Structure](#project-structure)
-- [Prerequisites](#prerequisites)
-- [Environment Variables](#environment-variables)
-- [Local Development](#local-development)
-- [Docker](#docker)
-- [Available Scripts](#available-scripts)
-- [API Overview](#api-overview)
-- [Load Testing](#load-testing)
-- [Production Checklist](#production-checklist)
-- [Troubleshooting](#troubleshooting)
+---
 
-## Architecture
+## 📌 Overview
 
-```text
-Patient Frontend  --->  Backend API  --->  MongoDB
-Admin Dashboard   --->      |        --->  Cloudinary
-Doctor Dashboard  --->      |        --->  Razorpay
+MyDoctor is implemented as a multi-service MERN-style appointment platform:
+
+| App | Folder | Purpose |
+| --- | --- | --- |
+| 🧑‍⚕️ Patient Web App | `frontend/` | Browse doctors, register/login, manage profile, book appointments, pay online |
+| 🛠️ Admin + Doctor Dashboard | `admin/` | Admin doctor onboarding and appointment oversight; doctor appointment/profile management |
+| 🔌 Backend API | `backend/` | Authentication, doctors, users, appointments, image uploads, payments |
+| 📈 Load Test | `tests/k6/` | k6 appointment-booking load scenario |
+
+---
+
+## 🧱 Tech Stack
+
+| Layer | Actual Implementation |
+| --- | --- |
+| Frontend | React `19`, Vite `7`, React Router DOM `7`, Axios, React Toastify |
+| Styling | Tailwind CSS `4`, custom primary color `#5f6FFF` |
+| Admin dashboard | React `19`, Vite `7`, Tailwind CSS `4`, `tailwind-scrollbar-hide` |
+| Backend | Node.js, Express `5`, ES modules, CORS, dotenv |
+| Database | MongoDB through Mongoose `8` |
+| Auth | JSON Web Tokens, bcrypt password hashing |
+| File uploads | Multer disk storage, Cloudinary image upload |
+| Payments | Razorpay order creation and order-status verification |
+| Testing | k6 load test script |
+| Containers | Dockerfiles for all three services, root Docker Compose file |
+
+---
+
+## ✨ Features
+
+| Area | Features |
+| --- | --- |
+| 👤 Patient | Register, login, browse doctors, filter by speciality, view doctor details, book 30-minute slots, view appointments, cancel appointments, edit profile, upload profile image, pay with Razorpay |
+| 🧑‍⚕️ Doctor | Login, view assigned appointments, mark appointments completed, cancel appointments, view dashboard metrics, view/update profile fees/address/availability |
+| 🛡️ Admin | Login, add doctors with image upload, list doctors, toggle doctor availability, view all appointments, cancel appointments, view dashboard metrics |
+| 💳 Payments | Backend creates Razorpay orders; frontend opens Razorpay checkout; backend verifies order status and marks appointments paid |
+| 🖼️ Media | User and doctor images are uploaded to Cloudinary |
+
+Implemented specialities in the UI:
+
+| Speciality |
+| --- |
+| General physician |
+| Gynecologist |
+| Dermatologist |
+| Pediatricians |
+| Neurologist |
+| Gastroenterologist |
+
+---
+
+## 🗺️ Architecture
+
+```mermaid
+flowchart LR
+    Patient["Patient App<br/>frontend / Vite :5173"] --> API["Express API<br/>backend :4000"]
+    Admin["Admin Dashboard<br/>admin / Vite :5174"] --> API
+    Doctor["Doctor Dashboard<br/>admin / Vite :5174"] --> API
+
+    API --> Mongo[("MongoDB<br/>prescripto database")]
+    API --> Cloudinary["Cloudinary<br/>image storage"]
+    API --> Razorpay["Razorpay<br/>payment orders"]
+
+    K6["k6 load test<br/>tests/k6/test.js"] --> API
 ```
 
-Default local service URLs:
-
-| Service | Path | URL |
-| --- | --- | --- |
-| Backend API | `backend` | `http://localhost:4000` |
-| Patient frontend | `frontend` | `http://localhost:5173` |
-| Admin/doctor dashboard | `admin` | `http://localhost:5174` with Docker, or Vite's assigned local port when run manually |
-
-## Features
-
-### Patient App
-
-- User registration and login
-- Doctor listing by speciality
-- Doctor profile and appointment slot booking
-- User profile management with image upload
-- Appointment history
-- Appointment cancellation
-- Razorpay payment order creation and verification
-
-### Admin Dashboard
-
-- Admin login
-- Add doctors with profile image upload
-- View all doctors
-- Toggle doctor availability
-- View and cancel appointments
-- Dashboard metrics for doctors, patients, appointments, and latest bookings
-
-### Doctor Dashboard
-
-- Doctor login
-- View assigned appointments
-- Complete or cancel appointments
-- View earnings, patients, appointments, and latest bookings
-- Update profile availability, fees, and address
-
-## Tech Stack
-
-| Layer | Technology |
-| --- | --- |
-| Frontend | React 19, Vite 7, Tailwind CSS 4, React Router, Axios, React Toastify |
-| Admin dashboard | React 19, Vite 7, Tailwind CSS 4, React Router, Axios, React Toastify |
-| Backend | Node.js, Express 5, Mongoose, JWT, bcrypt, Multer |
-| Database | MongoDB |
-| Media storage | Cloudinary |
-| Payments | Razorpay |
-| Load testing | k6 |
-| Containerization | Docker, Docker Compose |
-
-## Project Structure
+<details>
+<summary><strong>📁 Project Structure</strong></summary>
 
 ```text
 .
-+-- admin/                 # Admin and doctor dashboard Vite app
-+-- backend/               # Express API, controllers, routes, models, middleware
-+-- frontend/              # Patient-facing Vite app
-+-- tests/
-|   +-- k6/                # k6 load test
-+-- docker-compose.yml     # Multi-service Docker setup
-+-- README.md
+├── admin/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── context/
+│   │   └── pages/
+│   │       ├── Admin/
+│   │       └── Doctor/
+│   ├── Dockerfile
+│   ├── package.json
+│   └── vite.config.js
+├── backend/
+│   ├── config/
+│   ├── controllers/
+│   ├── middlewares/
+│   ├── models/
+│   ├── routes/
+│   ├── Dockerfile
+│   ├── package.json
+│   └── server.js
+├── frontend/
+│   ├── public/
+│   ├── src/
+│   │   ├── assets/
+│   │   ├── components/
+│   │   ├── context/
+│   │   └── pages/
+│   ├── Dockerfile
+│   ├── package.json
+│   └── vite.config.js
+├── tests/
+│   └── k6/
+│       └── test.js
+├── docker-compose.yml
+└── README.md
 ```
 
-## Prerequisites
+</details>
 
-- Node.js 22 or later
-- npm
-- MongoDB database, local or hosted
-- Cloudinary account
-- Razorpay account
-- Docker and Docker Compose, optional
-- k6, optional for load testing
+---
 
-## Environment Variables
+## 🔌 API Endpoints
 
-Create the following files before running the app.
+Base URL in local development:
+
+```text
+http://localhost:4000
+```
+
+Authentication uses custom headers in the checked-in clients:
+
+| Role | Header |
+| --- | --- |
+| User | `token` |
+| Admin | `aToken` |
+| Doctor | `dToken` |
+
+### 👤 User Routes
+
+| Method | Endpoint | Auth | Controller Behavior |
+| --- | --- | --- | --- |
+| `POST` | `/api/user/register` | Public | Validates email/password, hashes password, creates user, returns JWT |
+| `POST` | `/api/user/login` | Public | Validates credentials, returns JWT |
+| `GET` | `/api/user/get-profile` | `token` | Returns user profile without password |
+| `POST` | `/api/user/update-profile` | `token` | Updates profile fields and optional Cloudinary image |
+| `POST` | `/api/user/book-appointment` | `token` | Books an available doctor slot and stores appointment snapshot |
+| `GET` | `/api/user/appointments` | `token` | Lists appointments for the authenticated user |
+| `POST` | `/api/user/cancel-appointment` | `token` | Cancels appointment and releases doctor slot |
+| `POST` | `/api/user/payment-razorpay` | `token` | Creates a Razorpay order for an appointment |
+| `POST` | `/api/user/verifyRazorpay` | `token` | Fetches Razorpay order status and marks appointment paid |
+
+### 🧑‍⚕️ Doctor Routes
+
+| Method | Endpoint | Auth | Controller Behavior |
+| --- | --- | --- | --- |
+| `GET` | `/api/doctor/list` | Public | Lists doctors without password/email |
+| `POST` | `/api/doctor/login` | Public | Validates doctor credentials, returns JWT |
+| `GET` | `/api/doctor/appointments` | `dToken` | Lists appointments assigned to doctor |
+| `POST` | `/api/doctor/complete-appointment` | `dToken` | Marks an appointment completed |
+| `POST` | `/api/doctor/cancel-appointment` | `dToken` | Cancels a doctor appointment |
+| `GET` | `/api/doctor/dashboard` | `dToken` | Returns earnings, appointments, patients, latest appointments |
+| `GET` | `/api/doctor/profile` | `dToken` | Returns doctor profile without password |
+| `POST` | `/api/doctor/update-profile` | `dToken` | Updates fees, address, and availability |
+
+### 🛡️ Admin Routes
+
+| Method | Endpoint | Auth | Controller Behavior |
+| --- | --- | --- | --- |
+| `POST` | `/api/admin/login` | Public | Compares credentials with env vars, returns JWT |
+| `POST` | `/api/admin/add-doctor` | `aToken` | Validates doctor data, uploads image, hashes password, creates doctor |
+| `POST` | `/api/admin/all-doctors` | `aToken` | Lists all doctors without passwords |
+| `POST` | `/api/admin/change-availability` | `aToken` | Toggles doctor availability |
+| `GET` | `/api/admin/appointments` | `aToken` | Lists all appointments |
+| `POST` | `/api/admin/cancel-appointment` | `aToken` | Cancels appointment and releases doctor slot |
+| `GET` | `/api/admin/dashboard` | `aToken` | Returns doctor, patient, appointment, latest appointment counts |
+
+---
+
+## 🔐 Environment Variables
+
+Create these files locally. The repository does not include committed `.env` files.
 
 ### `backend/.env`
+
+| Variable | Required | Used By |
+| --- | --- | --- |
+| `PORT` | No | API port, defaults to `4000` |
+| `MONGODB_URL` | Yes | MongoDB connection base URL; backend appends `/prescripto` |
+| `JWT_SECRET` | Yes | User, admin, and doctor JWT signing/verification |
+| `ADMIN_EMAIL` | Yes | Admin login |
+| `ADMIN_PASSWORD` | Yes | Admin login |
+| `CLOUDINARY_NAME` | Yes | Cloudinary config |
+| `CLOUDINARY_API_KEY` | Yes | Cloudinary config |
+| `CLOUDINARY_SECRET_KEY` | Yes | Cloudinary config |
+| `RAZORPAY_KEY_ID` | Yes | Razorpay server-side instance |
+| `RAZORPAY_KEY_SECRET` | Yes | Razorpay server-side instance |
+| `CURRENCY` | Yes | Razorpay order currency |
 
 ```env
 PORT=4000
 MONGODB_URL=mongodb://localhost:27017
-JWT_SECRET=replace-with-a-long-random-secret
+JWT_SECRET=replace-with-a-long-secret
 
 ADMIN_EMAIL=admin@example.com
 ADMIN_PASSWORD=replace-with-a-strong-password
 
-CLOUDINARY_NAME=your-cloudinary-cloud-name
-CLOUDINARY_API_KEY=your-cloudinary-api-key
-CLOUDINARY_SECRET_KEY=your-cloudinary-secret-key
+CLOUDINARY_NAME=your-cloud-name
+CLOUDINARY_API_KEY=your-api-key
+CLOUDINARY_SECRET_KEY=your-secret-key
 
 RAZORPAY_KEY_ID=your-razorpay-key-id
 RAZORPAY_KEY_SECRET=your-razorpay-key-secret
 CURRENCY=INR
 ```
 
-Notes:
-
-- The backend connects to `${MONGODB_URL}/prescripto`, so `MONGODB_URL` should be the base MongoDB connection string.
-- Use a strong `JWT_SECRET` in production and rotate it if it is ever exposed.
-- Never commit real `.env` files or payment credentials.
-
 ### `frontend/.env`
+
+| Variable | Required | Used By |
+| --- | --- | --- |
+| `VITE_BACKEND_URL` | Yes | Patient app API calls |
+| `VITE_RAZORPAY_KEY_ID` | Yes for online payment UI | Razorpay Checkout key in `MyAppointments.jsx` |
 
 ```env
 VITE_BACKEND_URL=http://localhost:4000
+VITE_RAZORPAY_KEY_ID=your-razorpay-key-id
 ```
 
 ### `admin/.env`
 
+| Variable | Required | Used By |
+| --- | --- | --- |
+| `VITE_BACKEND_URL` | Yes | Admin and doctor dashboard API calls |
+
 ```env
 VITE_BACKEND_URL=http://localhost:4000
 ```
 
-## Local Development
+---
 
-Install dependencies for each service:
+## ⚙️ Installation Steps
+
+### 1. Clone and install dependencies
 
 ```bash
+git clone <repository-url>
+cd mydoctor
+
 cd backend
 npm install
 
@@ -161,177 +267,247 @@ cd ../admin
 npm install
 ```
 
-Start the backend:
+### 2. Add environment files
+
+Create:
+
+| File | Purpose |
+| --- | --- |
+| `backend/.env` | Backend secrets and service keys |
+| `frontend/.env` | Patient app API and Razorpay browser key |
+| `admin/.env` | Dashboard API URL |
+
+### 3. Run the backend
 
 ```bash
 cd backend
 npm run server
 ```
 
-Start the patient frontend in a separate terminal:
+Health check:
+
+```text
+GET http://localhost:4000/
+```
+
+### 4. Run the patient app
 
 ```bash
 cd frontend
 npm run dev
 ```
 
-Start the admin/doctor dashboard in a separate terminal:
+Default Vite port:
+
+```text
+http://localhost:5173
+```
+
+### 5. Run the admin/doctor dashboard
 
 ```bash
 cd admin
 npm run dev
 ```
 
-Open the Vite URLs printed in the terminal. The backend health check is available at:
+Default Vite port:
 
 ```text
-GET http://localhost:4000/
+http://localhost:5174
 ```
 
-## Docker
+---
 
-Run all services:
+## 📦 Available Scripts
+
+| App | Command | Description |
+| --- | --- | --- |
+| Backend | `npm start` | Starts `server.js` with Node |
+| Backend | `npm run server` | Starts `server.js` with Nodemon |
+| Backend | `npm test` | Placeholder script that exits with an error |
+| Frontend | `npm run dev` | Starts Vite dev server on `5173` |
+| Frontend | `npm run build` | Builds patient app |
+| Frontend | `npm run preview` | Serves built patient app preview |
+| Frontend | `npm run lint` | Runs ESLint |
+| Admin | `npm run dev` | Starts Vite dev server on `5174` |
+| Admin | `npm run build` | Builds dashboard app |
+| Admin | `npm run preview` | Serves built dashboard preview |
+| Admin | `npm run lint` | Runs ESLint |
+
+---
+
+## 🐳 Docker Setup
+
+The repository includes:
+
+| File | Service |
+| --- | --- |
+| `backend/Dockerfile` | Node 22 Alpine backend, exposes `4000`, runs `npm start` |
+| `frontend/Dockerfile` | Node 22 Alpine Vite app, exposes `5173`, runs `npm run dev -- --host` |
+| `admin/Dockerfile` | Node 22 Alpine Vite app, exposes `5174`, runs `npm run dev -- --host` |
+| `docker-compose.yml` | Builds all three services |
+
+Run:
 
 ```bash
 docker compose up --build
 ```
 
-Docker Compose expects `backend/.env` to exist. The frontend and admin containers also need access to `VITE_BACKEND_URL`; for production-style builds, pass this value through your deployment environment or add service-level environment configuration.
-
-Ports:
-
-- Backend: `4000:4000`
-- Patient frontend: `5173:5173`
-- Admin dashboard: `5174:5173`
-
-Stop services:
+Stop:
 
 ```bash
 docker compose down
 ```
 
-## Available Scripts
+Compose ports currently configured:
 
-### Backend
-
-| Command | Description |
+| Service | Compose Mapping |
 | --- | --- |
-| `npm start` | Start the API with Node.js |
-| `npm run server` | Start the API with Nodemon |
-| `npm test` | Placeholder test script |
+| Backend | `4000:4000` |
+| Frontend | `5173:5173` |
+| Admin | `5174:5173` |
 
-### Frontend
+> ⚠️ The checked-in `admin/vite.config.js` uses port `5174`, and `admin/Dockerfile` exposes `5174`, but `docker-compose.yml` maps host `5174` to container `5173`. As implemented, this mapping should be reviewed before relying on the admin container.
 
-| Command | Description |
+`docker-compose.yml` loads `./backend/.env` for the backend service. The frontend and admin services also require Vite environment variables, but the compose file does not currently pass them.
+
+---
+
+## 🚀 Deployment Details
+
+The project contains Dockerfiles and production build scripts, but no platform-specific deployment config such as Render, Vercel, Netlify, Railway, or GitHub Actions workflow files.
+
+Deployment-ready pieces currently present:
+
+| Piece | Status |
 | --- | --- |
-| `npm run dev` | Start Vite development server |
-| `npm run build` | Build static production assets |
-| `npm run preview` | Preview the production build |
-| `npm run lint` | Run ESLint |
+| Backend start command | `npm start` in `backend/package.json` |
+| Frontend build command | `npm run build` in `frontend/package.json` |
+| Admin build command | `npm run build` in `admin/package.json` |
+| Dockerfiles | Present for backend, frontend, and admin |
+| Docker Compose | Present at repository root |
+| Hosted URL reference | `tests/k6/test.js` targets `https://prescripto-backend-ikxu.onrender.com` |
 
-### Admin
+Recommended deployment mapping based on the actual apps:
 
-| Command | Description |
+| Service | Build / Start |
 | --- | --- |
-| `npm run dev` | Start Vite development server |
-| `npm run build` | Build static production assets |
-| `npm run preview` | Preview the production build |
-| `npm run lint` | Run ESLint |
+| Backend API | Install in `backend/`, set backend env vars, run `npm start` |
+| Patient frontend | Install in `frontend/`, set `VITE_BACKEND_URL` and `VITE_RAZORPAY_KEY_ID`, run `npm run build`, serve `dist/` |
+| Admin dashboard | Install in `admin/`, set `VITE_BACKEND_URL`, run `npm run build`, serve `dist/` |
 
-## API Overview
+---
 
-Base URL:
+## 📈 Load Testing
+
+A k6 scenario exists at:
 
 ```text
-http://localhost:4000
+tests/k6/test.js
 ```
 
-### User Routes
+It runs:
 
-| Method | Endpoint | Auth | Description |
-| --- | --- | --- | --- |
-| `POST` | `/api/user/register` | No | Register a user |
-| `POST` | `/api/user/login` | No | Log in a user |
-| `GET` | `/api/user/get-profile` | User token | Get user profile |
-| `POST` | `/api/user/update-profile` | User token | Update profile and optional image |
-| `POST` | `/api/user/book-appointment` | User token | Book an appointment |
-| `GET` | `/api/user/appointments` | User token | List user appointments |
-| `POST` | `/api/user/cancel-appointment` | User token | Cancel a user appointment |
-| `POST` | `/api/user/payment-razorpay` | User token | Create Razorpay order |
-| `POST` | `/api/user/verifyRazorpay` | User token | Verify Razorpay payment |
+| Setting | Value |
+| --- | --- |
+| Virtual users | `500` |
+| Duration | `5m` |
+| Request | `POST /api/user/book-appointment` |
+| Target URL in file | `https://prescripto-backend-ikxu.onrender.com/api/user/book-appointment` |
 
-### Doctor Routes
-
-| Method | Endpoint | Auth | Description |
-| --- | --- | --- | --- |
-| `GET` | `/api/doctor/list` | No | List available doctors |
-| `POST` | `/api/doctor/login` | No | Log in a doctor |
-| `GET` | `/api/doctor/appointments` | Doctor token | List doctor appointments |
-| `POST` | `/api/doctor/complete-appointment` | Doctor token | Mark appointment complete |
-| `POST` | `/api/doctor/cancel-appointment` | Doctor token | Cancel appointment |
-| `GET` | `/api/doctor/dashboard` | Doctor token | Get doctor dashboard metrics |
-| `GET` | `/api/doctor/profile` | Doctor token | Get doctor profile |
-| `POST` | `/api/doctor/update-profile` | Doctor token | Update doctor profile |
-
-### Admin Routes
-
-| Method | Endpoint | Auth | Description |
-| --- | --- | --- | --- |
-| `POST` | `/api/admin/login` | No | Log in admin |
-| `POST` | `/api/admin/add-doctor` | Admin token | Add a doctor |
-| `POST` | `/api/admin/all-doctors` | Admin token | List all doctors |
-| `POST` | `/api/admin/change-availability` | Admin token | Toggle doctor availability |
-| `GET` | `/api/admin/appointments` | Admin token | List all appointments |
-| `POST` | `/api/admin/cancel-appointment` | Admin token | Cancel appointment |
-| `GET` | `/api/admin/dashboard` | Admin token | Get admin dashboard metrics |
-
-Authentication tokens are sent in custom headers used by the existing clients:
-
-- User: `token`
-- Admin: `aToken`
-- Doctor: `dToken`
-
-## Load Testing
-
-A k6 scenario exists at `tests/k6/test.js`.
+Run:
 
 ```bash
 k6 run tests/k6/test.js
 ```
 
-Before using it against a real environment, replace the hard-coded token, doctor ID, user ID, and target URL with values from your test environment. Do not run high-load tests against production unless the environment has been explicitly prepared for it.
+<details>
+<summary><strong>⚠️ Load test note</strong></summary>
 
-## Production Checklist
+The load test contains hard-coded token, doctor ID, user ID, and hosted URL values. Replace them with dedicated test-environment values before running.
 
-- Set strong secrets for `JWT_SECRET`, `ADMIN_PASSWORD`, Cloudinary, and Razorpay.
-- Use managed MongoDB with backups, monitoring, and IP/network restrictions.
-- Configure CORS to allow only trusted frontend origins.
-- Serve built frontend/admin assets through a production web server or platform, not Vite dev servers.
-- Add centralized logging and request monitoring for the backend.
-- Validate all file uploads for size, type, and abuse protection.
-- Add automated API and UI tests for authentication, bookings, payments, and admin workflows.
-- Use HTTPS for all deployed services.
-- Store secrets in your hosting provider's secret manager, not in source control.
-- Review payment verification and webhook handling before accepting real payments.
+</details>
 
-## Troubleshooting
+---
 
-### Backend cannot connect to MongoDB
+## 🧬 Data Models
 
-Check that `MONGODB_URL` is valid and that the database is reachable from the backend process. The app appends `/prescripto` to the configured value.
+| Model | Main Fields |
+| --- | --- |
+| `user` | `name`, `email`, `password`, `image`, `address`, `gender`, `dob`, `phone` |
+| `doctor` | `name`, `email`, `password`, `image`, `speciality`, `degree`, `experience`, `about`, `available`, `fees`, `address`, `date`, `slots_booked` |
+| `appointment` | `userId`, `docId`, `slotDate`, `slotTime`, `userData`, `docData`, `amount`, `date`, `cancelled`, `payment`, `isCompleted` |
 
-### Frontend cannot reach the API
+---
 
-Verify `VITE_BACKEND_URL` in both `frontend/.env` and `admin/.env`. Restart the Vite dev server after changing environment variables.
+## 🧭 App Routes
 
-### Image uploads fail
+### Patient App
 
-Check the Cloudinary variables in `backend/.env` and confirm the Cloudinary account allows image uploads.
+| Route | Page |
+| --- | --- |
+| `/` | Home |
+| `/doctors` | Doctor listing |
+| `/doctors/:speciality` | Filtered doctor listing |
+| `/login` | User login/sign up |
+| `/about` | About |
+| `/contact` | Contact |
+| `/my-profile` | User profile |
+| `/my-appointments` | User appointments and payments |
+| `/appointment/:docId` | Doctor appointment booking |
 
-### Razorpay payment order fails
+### Admin + Doctor Dashboard
 
-Verify `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, and `CURRENCY`. Use Razorpay test keys in non-production environments.
+| Route | Page |
+| --- | --- |
+| `/admin-dashboard` | Admin dashboard |
+| `/all-appointments` | Admin appointments |
+| `/add-doctor` | Add doctor |
+| `/doctor-list` | Doctor list |
+| `/doctor-dashboard` | Doctor dashboard |
+| `/doctor-appointments` | Doctor appointments |
+| `/doctor-profile` | Doctor profile |
 
-### Admin login fails
+---
 
-The admin login compares credentials directly against `ADMIN_EMAIL` and `ADMIN_PASSWORD` in `backend/.env`.
+## 🛡️ Security Notes From Implementation
+
+<details>
+<summary><strong>Authentication behavior</strong></summary>
+
+- User and doctor JWTs store the MongoDB document ID as `id`.
+- Admin JWT signs the concatenated `ADMIN_EMAIL + ADMIN_PASSWORD` string.
+- Middleware injects `userId` or `docId` into `req.body`.
+- Role tokens are read from custom headers, not the standard `Authorization: Bearer` header.
+
+</details>
+
+<details>
+<summary><strong>Operational considerations</strong></summary>
+
+- CORS is currently enabled globally with default settings.
+- Multer stores uploaded files using the original filename before Cloudinary upload.
+- Razorpay verification checks fetched order status and marks payment when status is `paid`.
+- There is no committed automated unit/integration test suite; the backend `npm test` script is a placeholder.
+
+</details>
+
+---
+
+## 🧯 Troubleshooting
+
+| Problem | Check |
+| --- | --- |
+| Backend cannot connect to MongoDB | Confirm `MONGODB_URL`; backend appends `/prescripto` |
+| Patient/admin app cannot call API | Confirm `VITE_BACKEND_URL` and restart Vite |
+| Profile or doctor image upload fails | Confirm Cloudinary env vars |
+| Admin login fails | Confirm `ADMIN_EMAIL` and `ADMIN_PASSWORD` in `backend/.env` |
+| Razorpay checkout fails in browser | Confirm `frontend/.env` has `VITE_RAZORPAY_KEY_ID` |
+| Razorpay order creation fails | Confirm backend Razorpay keys and `CURRENCY` |
+| Admin Docker service is unreachable | Review the `5174:5173` compose mapping against admin Vite port `5174` |
+
+---
+
+## 📄 License
+
+The backend package declares the license as `ISC` in `backend/package.json`. The frontend and admin packages do not declare a license field.
